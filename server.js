@@ -25,27 +25,37 @@ app.use((req, res, next) => {
 });
 
 // Session configuration
-app.use(session({
-  secret: process.env.SESSION_SECRET,
+const sessionConfig = {
+  secret: process.env.SESSION_SECRET || 'fallback-secret-key',
   resave: false,
   saveUninitialized: false,
-  store: MongoStore.create({
-    mongoUrl: process.env.MONGODB_URI,
-    ttl: 24 * 60 * 60 // 1 day
-  }),
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     maxAge: 24 * 60 * 60 * 1000 // 1 day
   }
-}));
+};
+
+// Add MongoDB store if MONGODB_URI is available
+if (process.env.MONGODB_URI) {
+  sessionConfig.store = MongoStore.create({
+    mongoUrl: process.env.MONGODB_URI,
+    ttl: 24 * 60 * 60 // 1 day
+  });
+}
+
+app.use(session(sessionConfig));
 
 // Database connection
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log('Connected to MongoDB'))
-.catch(err => console.error('MongoDB connection error:', err));
+if (process.env.MONGODB_URI) {
+  mongoose.connect(process.env.MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log('Connected to MongoDB'))
+  .catch(err => console.error('MongoDB connection error:', err));
+} else {
+  console.warn('MONGODB_URI not found. Database connection skipped.');
+}
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -90,7 +100,12 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Visit http://localhost:${PORT} to access the application`);
-}); 
+// Handle Vercel serverless environment
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    console.log(`Visit http://localhost:${PORT} to access the application`);
+  });
+}
+
+module.exports = app; 
