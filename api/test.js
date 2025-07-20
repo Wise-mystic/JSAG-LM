@@ -1,7 +1,9 @@
 module.exports = (req, res) => {
   res.json({ 
-    message: 'API is working!',
+    message: 'Vercel API is working!',
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
+    method: req.method,
+    url: req.url
   });
 }; 

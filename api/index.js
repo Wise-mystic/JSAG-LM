@@ -4,7 +4,14 @@ const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const cors = require('cors');
 const path = require('path');
-require('dotenv').config();
+
+// Load environment variables
+require('dotenv').config({ path: './config.env' });
+
+// Import routes
+const authRoutes = require('../routes/auth');
+const bookRoutes = require('../routes/books');
+const dashboardRoutes = require('../routes/dashboard');
 
 const app = express();
 
@@ -12,7 +19,6 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use(express.static(path.join(__dirname, '../public')));
 
 // Session configuration
 const sessionConfig = {
@@ -47,17 +53,15 @@ if (process.env.MONGODB_URI) {
   console.warn('MONGODB_URI not found. Database connection skipped.');
 }
 
-// Import routes
-const authRoutes = require('../routes/auth');
-const bookRoutes = require('../routes/books');
-const dashboardRoutes = require('../routes/dashboard');
-
-// Route middleware
+// API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/books', bookRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 
 // Serve static files
+app.use(express.static(path.join(__dirname, '../public')));
+
+// HTML Routes
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
@@ -90,4 +94,15 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
-module.exports = app; 
+// Export for Vercel
+module.exports = app;
+
+// Start server for local development
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`📱 Visit http://localhost:${PORT} to access the application`);
+    console.log(`🔗 API Test: http://localhost:${PORT}/api/test`);
+  });
+} 
