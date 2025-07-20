@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#1E40AF'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="flex items-center justify-center min-h-screen">
+        <div class="text-center">
+            <div class="mb-8">
+                <h1 class="text-4xl font-bold text-gray-900 mb-4">📚 Library Management System</h1>
+                <p class="text-lg text-gray-600">Admin Dashboard for Book Management</p>
+            </div>
+            
+            <div class="space-y-4">
+                <div id="loading" class="text-gray-500">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                    Checking authentication...
+                </div>
+                
+                <div id="auth-buttons" class="hidden space-y-3">
+                    <a href="/login" class="inline-block bg-primary hover:bg-secondary text-white font-semibold py-3 px-6 rounded-lg transition duration-200">
+                        Login to Dashboard
+                    </a>
+                    <br>
+                    <a href="/register" class="inline-block bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-200">
+                        Register New Admin
+                    </a>
+                </div>
+                
+                <div id="dashboard-link" class="hidden">
+                    <a href="/dashboard" class="inline-block bg-primary hover:bg-secondary text-white font-semibold py-3 px-6 rounded-lg transition duration-200">
+                        Go to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check authentication status on page load
+        fetch('/api/auth/status')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('loading').classList.add('hidden');
+                
+                if (data.authenticated) {
+                    document.getElementById('dashboard-link').classList.remove('hidden');
+                } else {
+                    document.getElementById('auth-buttons').classList.remove('hidden');
+                }
+            })
+            .catch(error => {
+                console.error('Error checking auth status:', error);
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('auth-buttons').classList.remove('hidden');
+            });
+    </script>
+</body>
+</html> 
