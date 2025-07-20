@@ -4,25 +4,15 @@ const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const cors = require('cors');
 const path = require('path');
-require('dotenv').config({ path: './config.env' });
+require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use(express.static('public'));
-
-// Debug middleware to log requests
-app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path}`);
-  if (req.body && Object.keys(req.body).length > 0) {
-    console.log('Request body:', req.body);
-  }
-  next();
-});
+app.use(express.static(path.join(__dirname, '../public')));
 
 // Session configuration
 const sessionConfig = {
@@ -58,9 +48,9 @@ if (process.env.MONGODB_URI) {
 }
 
 // Import routes
-const authRoutes = require('./routes/auth');
-const bookRoutes = require('./routes/books');
-const dashboardRoutes = require('./routes/dashboard');
+const authRoutes = require('../routes/auth');
+const bookRoutes = require('../routes/books');
+const dashboardRoutes = require('../routes/dashboard');
 
 // Route middleware
 app.use('/api/auth', authRoutes);
@@ -69,39 +59,19 @@ app.use('/api/dashboard', dashboardRoutes);
 
 // Serve static files
 app.get('/', (req, res) => {
-  try {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-  } catch (error) {
-    console.error('Error serving index.html:', error);
-    res.status(500).send('Internal Server Error');
-  }
+  res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
 app.get('/login', (req, res) => {
-  try {
-    res.sendFile(path.join(__dirname, 'public', 'login.html'));
-  } catch (error) {
-    console.error('Error serving login.html:', error);
-    res.status(500).send('Internal Server Error');
-  }
+  res.sendFile(path.join(__dirname, '../public/login.html'));
 });
 
 app.get('/register', (req, res) => {
-  try {
-    res.sendFile(path.join(__dirname, 'public', 'register.html'));
-  } catch (error) {
-    console.error('Error serving register.html:', error);
-    res.status(500).send('Internal Server Error');
-  }
+  res.sendFile(path.join(__dirname, '../public/register.html'));
 });
 
 app.get('/dashboard', (req, res) => {
-  try {
-    res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
-  } catch (error) {
-    console.error('Error serving dashboard.html:', error);
-    res.status(500).send('Internal Server Error');
-  }
+  res.sendFile(path.join(__dirname, '../public/dashboard.html'));
 });
 
 // Error handling middleware
@@ -119,13 +89,5 @@ app.use((err, req, res, next) => {
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
-
-// Handle Vercel serverless environment
-if (process.env.NODE_ENV !== 'production') {
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    console.log(`Visit http://localhost:${PORT} to access the application`);
-  });
-}
 
 module.exports = app; 
